@@ -144,20 +144,7 @@ python -m http.server 8000                # 打開 http://localhost:8000 預覽�
 
 - **選資料集**：老師提供的 ChatGPT 對話（「list kaggle multiple linear regression problems, choose features > 13, < 40」）建議了 Predict the Flood、Istanbul Apartment Prices、House Prices 等題目，以及「CRISP-DM + Feature Selection（SelectKBest、RFE、Sequential Feature Selection、Lasso）+ 五大迴歸假設檢驗」的作業架構。本作業的特徵選擇方法比較與假設檢驗即依此架構設計。
 - **程式與報告**：`hw2_analysis.py`、`index.html` 與本 README 由 AI（Claude Code）協助撰寫，包含 log-log 轉換的比較、共線性處理、CI/PI 計算與網頁。
-- 對話紀錄 PDF：`docs/chat_log.pdf`（以 pdfCrowd 匯出）<!-- TODO: 放入自己的對話紀錄 PDF -->
-
-### NotebookLM 摘要
-
-<!-- TODO（需自己完成）：
-1. 到 https://notebooklm.google.com 新增筆記本，加入 3–5 個同主題的網路解法當作來源，例如：
-   - Kaggle 上 "House Sales in King County" 的熱門 Notebook（Code 分頁依 Most Votes 排序）
-   - Kaggle 上 "Car Price Prediction" 的熱門 Notebook
-   - 任一篇 multiple linear regression feature selection 的教學文章
-2. 問 NotebookLM：「請比較這些解法在資料前處理、特徵選擇、模型評估上的做法，並整理共同結論」
-3. 把 NotebookLM 的回答整理成 100 字以上的摘要貼在下面，並截圖放到 docs/。
--->
-
-（待補：NotebookLM 摘要，100 字以上）
+- 本作業未另外附上對話紀錄 PDF，也未使用 NotebookLM 撰寫摘要（兩者在繳交內容中為 optional）。
 
 ## 檔案
 
