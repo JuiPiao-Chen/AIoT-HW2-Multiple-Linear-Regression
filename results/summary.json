@@ -1,0 +1,897 @@
+{
+  "house": {
+    "name": "King County House Sales",
+    "kaggle": "https://www.kaggle.com/datasets/harlfoxem/housesalesprediction",
+    "url": "https://raw.githubusercontent.com/Shreyas3108/house-price-prediction/master/kc_house_data.csv",
+    "target": "price",
+    "log_target": true,
+    "n_rows": 21613,
+    "n_raw_features": 20,
+    "dropped_columns": [
+      "id",
+      "date",
+      "zipcode"
+    ],
+    "collinear_removed": [],
+    "n_model_columns": 17,
+    "n_train": 17290,
+    "n_test": 4323,
+    "methods": {
+      "All-in": {
+        "n_features": 17,
+        "cv_RMSE": 180677.08,
+        "train_Adj_R2": 0.7698,
+        "aic": -47668.7,
+        "R2": 0.7272,
+        "MAE": 112710.87,
+        "RMSE": 203067.67,
+        "MSE": 41236480347.38,
+        "features": [
+          "bedrooms",
+          "bathrooms",
+          "sqft_living",
+          "sqft_lot",
+          "floors",
+          "waterfront",
+          "view",
+          "condition",
+          "grade",
+          "sqft_above",
+          "sqft_basement",
+          "yr_built",
+          "yr_renovated",
+          "lat",
+          "long",
+          "sqft_living15",
+          "sqft_lot15"
+        ]
+      },
+      "Backward Elimination (p<0.05)": {
+        "n_features": 16,
+        "cv_RMSE": 180552.8,
+        "train_Adj_R2": 0.7698,
+        "aic": -47669.5,
+        "R2": 0.7277,
+        "MAE": 112691.31,
+        "RMSE": 202892.7,
+        "MSE": 41165445719.07,
+        "features": [
+          "bedrooms",
+          "bathrooms",
+          "sqft_living",
+          "sqft_lot",
+          "floors",
+          "waterfront",
+          "view",
+          "condition",
+          "grade",
+          "sqft_above",
+          "sqft_basement",
+          "yr_built",
+          "yr_renovated",
+          "lat",
+          "sqft_living15",
+          "sqft_lot15"
+        ]
+      },
+      "Forward Stepwise (AIC)": {
+        "n_features": 16,
+        "cv_RMSE": 180552.8,
+        "train_Adj_R2": 0.7698,
+        "aic": -47669.5,
+        "R2": 0.7277,
+        "MAE": 112691.31,
+        "RMSE": 202892.7,
+        "MSE": 41165445861.46,
+        "features": [
+          "grade",
+          "lat",
+          "sqft_living",
+          "yr_built",
+          "view",
+          "bathrooms",
+          "sqft_living15",
+          "waterfront",
+          "condition",
+          "floors",
+          "sqft_lot15",
+          "bedrooms",
+          "yr_renovated",
+          "sqft_above",
+          "sqft_basement",
+          "sqft_lot"
+        ]
+      },
+      "SelectKBest (F-test, k by CV)": {
+        "n_features": 17,
+        "cv_RMSE": 180677.08,
+        "train_Adj_R2": 0.7698,
+        "aic": -47668.7,
+        "R2": 0.7272,
+        "MAE": 112710.87,
+        "RMSE": 203067.67,
+        "MSE": 41236479039.78,
+        "features": [
+          "grade",
+          "sqft_living",
+          "sqft_living15",
+          "sqft_above",
+          "bathrooms",
+          "lat",
+          "view",
+          "bedrooms",
+          "sqft_basement",
+          "floors",
+          "waterfront",
+          "sqft_lot",
+          "sqft_lot15",
+          "yr_renovated",
+          "yr_built",
+          "long",
+          "condition"
+        ]
+      },
+      "RFE (k by CV)": {
+        "n_features": 15,
+        "cv_RMSE": 180440.89,
+        "train_Adj_R2": 0.7697,
+        "aic": -47666.4,
+        "R2": 0.7279,
+        "MAE": 112729.42,
+        "RMSE": 202801.17,
+        "MSE": 41128316492.38,
+        "features": [
+          "sqft_living",
+          "lat",
+          "grade",
+          "yr_built",
+          "view",
+          "bathrooms",
+          "sqft_living15",
+          "waterfront",
+          "condition",
+          "floors",
+          "sqft_above",
+          "sqft_basement",
+          "sqft_lot15",
+          "bedrooms",
+          "yr_renovated"
+        ]
+      },
+      "LassoCV (non-zero coef)": {
+        "n_features": 17,
+        "cv_RMSE": 180677.08,
+        "train_Adj_R2": 0.7698,
+        "aic": -47668.7,
+        "R2": 0.7272,
+        "MAE": 112710.87,
+        "RMSE": 203067.67,
+        "MSE": 41236480347.38,
+        "features": [
+          "bedrooms",
+          "bathrooms",
+          "sqft_living",
+          "sqft_lot",
+          "floors",
+          "waterfront",
+          "view",
+          "condition",
+          "grade",
+          "sqft_above",
+          "sqft_basement",
+          "yr_built",
+          "yr_renovated",
+          "lat",
+          "long",
+          "sqft_living15",
+          "sqft_lot15"
+        ]
+      }
+    },
+    "final_model": "RFE (k by CV)",
+    "pi_coverage": 0.944,
+    "assumptions": {
+      "Durbin_Watson": 2.001,
+      "Jarque_Bera_p": 2.3140658891683633e-128,
+      "Breusch_Pagan_p": 7.389121453130148e-124
+    },
+    "coef": {
+      "(Intercept)": {
+        "beta": -48.98608225965559,
+        "se": 0.7719255309195932,
+        "p": 0.0
+      },
+      "sqft_living": {
+        "beta": 0.16609217419895939,
+        "se": 0.026487359541686656,
+        "p": 3.681515371598871e-10
+      },
+      "lat": {
+        "beta": 1.33821332590355,
+        "se": 0.014794137991815046,
+        "p": 0.0
+      },
+      "grade": {
+        "beta": 0.1636790156172368,
+        "se": 0.002875299633155239,
+        "p": 0.0
+      },
+      "yr_built": {
+        "beta": -0.00364304263088805,
+        "se": 9.492667537632892e-05,
+        "p": 2.63403556508601e-309
+      },
+      "view": {
+        "beta": 0.06116631011674726,
+        "se": 0.002983135982347393,
+        "p": 2.4860445590303456e-92
+      },
+      "bathrooms": {
+        "beta": 0.07076363145055702,
+        "se": 0.004570030426123087,
+        "p": 1.0171806890731081e-53
+      },
+      "sqft_living15": {
+        "beta": 0.23504446718193145,
+        "se": 0.009707631634305302,
+        "p": 2.1729164887989828e-127
+      },
+      "waterfront": {
+        "beta": 0.41124026747167175,
+        "se": 0.024802099971397193,
+        "p": 2.8514063392571544e-61
+      },
+      "condition": {
+        "beta": 0.061604929066043396,
+        "se": 0.0032680002526912786,
+        "p": 1.7687923467066218e-78
+      },
+      "floors": {
+        "beta": 0.041811898093288245,
+        "se": 0.005420562834153356,
+        "p": 1.2898146523674762e-14
+      },
+      "sqft_above": {
+        "beta": 0.15473668264467366,
+        "se": 0.02430840289698871,
+        "p": 1.9947674791852235e-10
+      },
+      "sqft_basement": {
+        "beta": 7.24213763443876e-05,
+        "se": 1.29233549207145e-05,
+        "p": 2.1276364166850808e-08
+      },
+      "sqft_lot15": {
+        "beta": -0.027589600462185913,
+        "se": 0.002941046854606022,
+        "p": 7.334280266945126e-21
+      },
+      "bedrooms": {
+        "beta": -0.02154025239770265,
+        "se": 0.002736693243009358,
+        "p": 3.72807659077643e-15
+      },
+      "yr_renovated": {
+        "beta": 3.428792908915289e-05,
+        "se": 5.152699973107689e-06,
+        "p": 2.930793697226175e-11
+      }
+    },
+    "vif": {
+      "sqft_living": 34.25,
+      "sqft_above": 29.15,
+      "sqft_basement": 8.76,
+      "bathrooms": 3.35,
+      "grade": 3.09,
+      "sqft_living15": 2.74,
+      "floors": 2.36,
+      "yr_built": 2.13,
+      "bedrooms": 1.77,
+      "sqft_lot15": 1.56,
+      "view": 1.41,
+      "condition": 1.24,
+      "waterfront": 1.19,
+      "yr_renovated": 1.15,
+      "lat": 1.14
+    },
+    "forward_path": [
+      {
+        "feature": "grade",
+        "aic": -33942.7,
+        "cv_RMSE": 258173.75
+      },
+      {
+        "feature": "lat",
+        "aic": -39446.2,
+        "cv_RMSE": 244012.23
+      },
+      {
+        "feature": "sqft_living",
+        "aic": -42805.6,
+        "cv_RMSE": 226897.17
+      },
+      {
+        "feature": "yr_built",
+        "aic": -44923.9,
+        "cv_RMSE": 207221.77
+      },
+      {
+        "feature": "view",
+        "aic": -45991.6,
+        "cv_RMSE": 195536.38
+      },
+      {
+        "feature": "bathrooms",
+        "aic": -46345.6,
+        "cv_RMSE": 190016.72
+      },
+      {
+        "feature": "sqft_living15",
+        "aic": -46752.8,
+        "cv_RMSE": 190217.09
+      },
+      {
+        "feature": "waterfront",
+        "aic": -47025.1,
+        "cv_RMSE": 182998.99
+      },
+      {
+        "feature": "condition",
+        "aic": -47263.7,
+        "cv_RMSE": 182542.78
+      },
+      {
+        "feature": "floors",
+        "aic": -47460.3,
+        "cv_RMSE": 183109.87
+      },
+      {
+        "feature": "sqft_lot15",
+        "aic": -47526.1,
+        "cv_RMSE": 182291.67
+      },
+      {
+        "feature": "bedrooms",
+        "aic": -47586.8,
+        "cv_RMSE": 181984.61
+      },
+      {
+        "feature": "yr_renovated",
+        "aic": -47629.9,
+        "cv_RMSE": 181747.96
+      },
+      {
+        "feature": "sqft_above",
+        "aic": -47637.0,
+        "cv_RMSE": 181464.91
+      },
+      {
+        "feature": "sqft_basement",
+        "aic": -47666.4,
+        "cv_RMSE": 180440.89
+      },
+      {
+        "feature": "sqft_lot",
+        "aic": -47669.5,
+        "cv_RMSE": 180552.8
+      },
+      {
+        "feature": "long",
+        "aic": -47668.7,
+        "cv_RMSE": 180677.08
+      }
+    ]
+  },
+  "car": {
+    "name": "Car Price Prediction",
+    "kaggle": "https://www.kaggle.com/datasets/hellbuoy/car-price-prediction",
+    "url": "https://raw.githubusercontent.com/amankharwal/Website-data/master/CarPrice.csv",
+    "target": "price",
+    "log_target": true,
+    "n_rows": 205,
+    "n_raw_features": 25,
+    "dropped_columns": [
+      "car_ID",
+      "CarName"
+    ],
+    "collinear_removed": [
+      "cylindernumber_three",
+      "cylindernumber_two",
+      "fuelsystem_idi"
+    ],
+    "n_model_columns": 40,
+    "n_train": 164,
+    "n_test": 41,
+    "methods": {
+      "All-in": {
+        "n_features": 40,
+        "cv_RMSE": 5055.65,
+        "train_Adj_R2": 0.9257,
+        "aic": -619.2,
+        "R2": 0.8962,
+        "MAE": 1912.33,
+        "RMSE": 2863.04,
+        "MSE": 8196990.13,
+        "features": [
+          "symboling",
+          "wheelbase",
+          "carlength",
+          "carwidth",
+          "carheight",
+          "curbweight",
+          "enginesize",
+          "boreratio",
+          "stroke",
+          "compressionratio",
+          "horsepower",
+          "peakrpm",
+          "citympg",
+          "highwaympg",
+          "fueltype_gas",
+          "aspiration_turbo",
+          "doornumber_two",
+          "carbody_hardtop",
+          "carbody_hatchback",
+          "carbody_sedan",
+          "carbody_wagon",
+          "drivewheel_fwd",
+          "drivewheel_rwd",
+          "enginelocation_rear",
+          "enginetype_dohcv",
+          "enginetype_l",
+          "enginetype_ohc",
+          "enginetype_ohcf",
+          "enginetype_ohcv",
+          "enginetype_rotor",
+          "cylindernumber_five",
+          "cylindernumber_four",
+          "cylindernumber_six",
+          "cylindernumber_twelve",
+          "fuelsystem_2bbl",
+          "fuelsystem_4bbl",
+          "fuelsystem_mfi",
+          "fuelsystem_mpfi",
+          "fuelsystem_spdi",
+          "fuelsystem_spfi"
+        ]
+      },
+      "Backward Elimination (p<0.05)": {
+        "n_features": 19,
+        "cv_RMSE": 4437.91,
+        "train_Adj_R2": 0.9286,
+        "aic": -642.0,
+        "R2": 0.8843,
+        "MAE": 1991.86,
+        "RMSE": 3022.22,
+        "MSE": 9133793.24,
+        "features": [
+          "curbweight",
+          "enginesize",
+          "stroke",
+          "compressionratio",
+          "horsepower",
+          "citympg",
+          "carbody_hardtop",
+          "carbody_hatchback",
+          "carbody_wagon",
+          "enginelocation_rear",
+          "enginetype_dohcv",
+          "enginetype_ohc",
+          "enginetype_ohcv",
+          "cylindernumber_five",
+          "cylindernumber_four",
+          "cylindernumber_six",
+          "cylindernumber_twelve",
+          "fuelsystem_2bbl",
+          "fuelsystem_spdi"
+        ]
+      },
+      "Forward Stepwise (AIC)": {
+        "n_features": 24,
+        "cv_RMSE": 3888.33,
+        "train_Adj_R2": 0.9276,
+        "aic": -635.5,
+        "R2": 0.9045,
+        "MAE": 1799.5,
+        "RMSE": 2745.39,
+        "MSE": 7537188.82,
+        "features": [
+          "curbweight",
+          "horsepower",
+          "enginelocation_rear",
+          "fuelsystem_2bbl",
+          "carwidth",
+          "enginetype_l",
+          "drivewheel_rwd",
+          "carbody_sedan",
+          "citympg",
+          "symboling",
+          "stroke",
+          "enginetype_ohcf",
+          "fueltype_gas",
+          "fuelsystem_spdi",
+          "compressionratio",
+          "fuelsystem_spfi",
+          "enginetype_ohcv",
+          "enginesize",
+          "cylindernumber_twelve",
+          "carbody_hardtop",
+          "enginetype_rotor",
+          "enginetype_ohc",
+          "carbody_hatchback",
+          "carbody_wagon"
+        ]
+      },
+      "SelectKBest (F-test, k by CV)": {
+        "n_features": 20,
+        "cv_RMSE": 2740.4,
+        "train_Adj_R2": 0.9049,
+        "aic": -594.0,
+        "R2": 0.8808,
+        "MAE": 1863.82,
+        "RMSE": 3067.88,
+        "MSE": 9411884.8,
+        "features": [
+          "curbweight",
+          "horsepower",
+          "enginesize",
+          "citympg",
+          "highwaympg",
+          "carwidth",
+          "carlength",
+          "drivewheel_rwd",
+          "cylindernumber_four",
+          "drivewheel_fwd",
+          "fuelsystem_mpfi",
+          "fuelsystem_2bbl",
+          "boreratio",
+          "wheelbase",
+          "cylindernumber_six",
+          "enginetype_ohc",
+          "enginetype_ohcv",
+          "enginelocation_rear",
+          "carbody_hatchback",
+          "aspiration_turbo"
+        ]
+      },
+      "RFE (k by CV)": {
+        "n_features": 10,
+        "cv_RMSE": 2343.23,
+        "train_Adj_R2": 0.9098,
+        "aic": -611.7,
+        "R2": 0.8632,
+        "MAE": 2105.76,
+        "RMSE": 3286.42,
+        "MSE": 10800526.67,
+        "features": [
+          "curbweight",
+          "horsepower",
+          "carwidth",
+          "enginelocation_rear",
+          "citympg",
+          "compressionratio",
+          "fuelsystem_mpfi",
+          "enginetype_ohc",
+          "cylindernumber_four",
+          "carbody_wagon"
+        ]
+      },
+      "LassoCV (non-zero coef)": {
+        "n_features": 26,
+        "cv_RMSE": 3347.31,
+        "train_Adj_R2": 0.9272,
+        "aic": -633.0,
+        "R2": 0.9048,
+        "MAE": 1803.58,
+        "RMSE": 2741.87,
+        "MSE": 7517842.37,
+        "features": [
+          "symboling",
+          "carlength",
+          "carwidth",
+          "curbweight",
+          "enginesize",
+          "stroke",
+          "horsepower",
+          "citympg",
+          "fueltype_gas",
+          "aspiration_turbo",
+          "carbody_hardtop",
+          "carbody_hatchback",
+          "carbody_wagon",
+          "drivewheel_rwd",
+          "enginelocation_rear",
+          "enginetype_l",
+          "enginetype_ohc",
+          "enginetype_ohcf",
+          "enginetype_ohcv",
+          "enginetype_rotor",
+          "cylindernumber_four",
+          "cylindernumber_twelve",
+          "fuelsystem_2bbl",
+          "fuelsystem_mpfi",
+          "fuelsystem_spdi",
+          "fuelsystem_spfi"
+        ]
+      }
+    },
+    "final_model": "RFE (k by CV)",
+    "pi_coverage": 0.9024,
+    "assumptions": {
+      "Durbin_Watson": 1.797,
+      "Jarque_Bera_p": 0.0817564298439788,
+      "Breusch_Pagan_p": 0.05432321616301647
+    },
+    "coef": {
+      "(Intercept)": {
+        "beta": 6.5842606734477656,
+        "se": 0.6660887823340415,
+        "p": 3.991682035633724e-18
+      },
+      "curbweight": {
+        "beta": 0.0004468887856710524,
+        "se": 6.459484792700838e-05,
+        "p": 1.1716065593876959e-10
+      },
+      "horsepower": {
+        "beta": 0.0012778791361342731,
+        "se": 0.0006324156558827902,
+        "p": 0.04506229843974343
+      },
+      "carwidth": {
+        "beta": 0.025828674786629202,
+        "se": 0.01109203301991133,
+        "p": 0.021190273569294416
+      },
+      "enginelocation_rear": {
+        "beta": 0.6684201593000099,
+        "se": 0.10520345509463057,
+        "p": 2.287998020014854e-09
+      },
+      "citympg": {
+        "beta": -0.017679596542364312,
+        "se": 0.004554174753157979,
+        "p": 0.00015363904338357333
+      },
+      "compressionratio": {
+        "beta": 0.018640250557436205,
+        "se": 0.004586468595434409,
+        "p": 7.683436453074644e-05
+      },
+      "fuelsystem_mpfi": {
+        "beta": 0.13730028773630387,
+        "se": 0.03326352145618375,
+        "p": 6.003057164700841e-05
+      },
+      "enginetype_ohc": {
+        "beta": 0.11726476375499062,
+        "se": 0.031658599476498475,
+        "p": 0.00029582002235544483
+      },
+      "cylindernumber_four": {
+        "beta": -0.12322691731745894,
+        "se": 0.04038100077578494,
+        "p": 0.002684247244426357
+      },
+      "carbody_wagon": {
+        "beta": -0.13538817367183098,
+        "se": 0.040235951934627284,
+        "p": 0.0009681640269904632
+      }
+    },
+    "vif": {
+      "curbweight": 7.93,
+      "citympg": 5.71,
+      "horsepower": 4.69,
+      "carwidth": 4.02,
+      "compressionratio": 2.26,
+      "fuelsystem_mpfi": 2.01,
+      "cylindernumber_four": 1.95,
+      "enginetype_ohc": 1.51,
+      "enginelocation_rear": 1.45,
+      "carbody_wagon": 1.21
+    },
+    "forward_path": [
+      {
+        "feature": "curbweight",
+        "aic": -467.0,
+        "cv_RMSE": 4283.81
+      },
+      {
+        "feature": "horsepower",
+        "aic": -521.4,
+        "cv_RMSE": 3908.36
+      },
+      {
+        "feature": "enginelocation_rear",
+        "aic": -544.1,
+        "cv_RMSE": 3145.88
+      },
+      {
+        "feature": "fuelsystem_2bbl",
+        "aic": -557.6,
+        "cv_RMSE": 3018.26
+      },
+      {
+        "feature": "carwidth",
+        "aic": -569.9,
+        "cv_RMSE": 2810.14
+      },
+      {
+        "feature": "enginetype_l",
+        "aic": -582.9,
+        "cv_RMSE": 2523.45
+      },
+      {
+        "feature": "drivewheel_rwd",
+        "aic": -596.0,
+        "cv_RMSE": 2406.09
+      },
+      {
+        "feature": "carbody_sedan",
+        "aic": -606.5,
+        "cv_RMSE": 2413.05
+      },
+      {
+        "feature": "citympg",
+        "aic": -614.9,
+        "cv_RMSE": 2355.62
+      },
+      {
+        "feature": "symboling",
+        "aic": -617.5,
+        "cv_RMSE": 2313.52
+      },
+      {
+        "feature": "stroke",
+        "aic": -619.8,
+        "cv_RMSE": 2340.23
+      },
+      {
+        "feature": "enginetype_ohcf",
+        "aic": -624.2,
+        "cv_RMSE": 2416.32
+      },
+      {
+        "feature": "fueltype_gas",
+        "aic": -626.9,
+        "cv_RMSE": 2410.73
+      },
+      {
+        "feature": "fuelsystem_spdi",
+        "aic": -627.0,
+        "cv_RMSE": 2413.92
+      },
+      {
+        "feature": "compressionratio",
+        "aic": -627.9,
+        "cv_RMSE": 2385.03
+      },
+      {
+        "feature": "fuelsystem_spfi",
+        "aic": -627.5,
+        "cv_RMSE": 2392.15
+      },
+      {
+        "feature": "enginetype_ohcv",
+        "aic": -626.9,
+        "cv_RMSE": 2535.26
+      },
+      {
+        "feature": "enginesize",
+        "aic": -628.6,
+        "cv_RMSE": 2753.05
+      },
+      {
+        "feature": "cylindernumber_twelve",
+        "aic": -629.1,
+        "cv_RMSE": 2697.44
+      },
+      {
+        "feature": "carbody_hardtop",
+        "aic": -630.4,
+        "cv_RMSE": 2939.74
+      },
+      {
+        "feature": "enginetype_rotor",
+        "aic": -630.8,
+        "cv_RMSE": 3161.88
+      },
+      {
+        "feature": "enginetype_ohc",
+        "aic": -632.8,
+        "cv_RMSE": 3594.91
+      },
+      {
+        "feature": "carbody_hatchback",
+        "aic": -632.4,
+        "cv_RMSE": 3759.94
+      },
+      {
+        "feature": "carbody_wagon",
+        "aic": -635.5,
+        "cv_RMSE": 3888.33
+      },
+      {
+        "feature": "cylindernumber_four",
+        "aic": -635.1,
+        "cv_RMSE": 3760.28
+      },
+      {
+        "feature": "aspiration_turbo",
+        "aic": -634.6,
+        "cv_RMSE": 3827.89
+      },
+      {
+        "feature": "peakrpm",
+        "aic": -634.2,
+        "cv_RMSE": 3907.7
+      },
+      {
+        "feature": "highwaympg",
+        "aic": -634.3,
+        "cv_RMSE": 3867.47
+      },
+      {
+        "feature": "wheelbase",
+        "aic": -633.6,
+        "cv_RMSE": 3923.84
+      },
+      {
+        "feature": "drivewheel_fwd",
+        "aic": -633.8,
+        "cv_RMSE": 4039.55
+      },
+      {
+        "feature": "enginetype_dohcv",
+        "aic": -632.8,
+        "cv_RMSE": 4413.42
+      },
+      {
+        "feature": "cylindernumber_six",
+        "aic": -631.8,
+        "cv_RMSE": 4684.26
+      },
+      {
+        "feature": "cylindernumber_five",
+        "aic": -632.5,
+        "cv_RMSE": 5115.91
+      },
+      {
+        "feature": "fuelsystem_mpfi",
+        "aic": -631.1,
+        "cv_RMSE": 5113.49
+      },
+      {
+        "feature": "fuelsystem_mfi",
+        "aic": -629.1,
+        "cv_RMSE": 5105.64
+      },
+      {
+        "feature": "doornumber_two",
+        "aic": -627.2,
+        "cv_RMSE": 5084.26
+      },
+      {
+        "feature": "carlength",
+        "aic": -625.2,
+        "cv_RMSE": 5137.5
+      },
+      {
+        "feature": "carheight",
+        "aic": -623.2,
+        "cv_RMSE": 5157.53
+      },
+      {
+        "feature": "fuelsystem_4bbl",
+        "aic": -621.2,
+        "cv_RMSE": 5139.93
+      },
+      {
+        "feature": "boreratio",
+        "aic": -619.2,
+        "cv_RMSE": 5055.65
+      }
+    ]
+  }
+}

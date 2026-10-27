@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HW2 Multiple Linear Regression</title>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --ink: #1d2433; --muted: #64708a; --line: #e1e5ec;
+    --accent: #2f6fdf; --accent-soft: #e8f0fd; --good: #1a8f5a; --bad: #c2453b;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.55 -apple-system, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 16px 60px; }
+  header h1 { margin: 0 0 4px; font-size: 1.6rem; }
+  header p { margin: 0; color: var(--muted); }
+  a { color: var(--accent); }
+  .steps { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 22px; }
+  .steps span { font-size: 12px; padding: 3px 10px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; margin-bottom: 18px; }
+  .card h2 { font-size: 1.05rem; margin: 0 0 12px; }
+  .card h2 small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+  .row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label, .lbl { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+  select, input[type=text], input[type=number] {
+    font: inherit; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; min-width: 0; }
+  #urlInput { width: min(560px, 100%); }
+  button { font: inherit; padding: 7px 16px; border-radius: 6px; border: 1px solid var(--accent);
+           background: var(--accent); color: #fff; cursor: pointer; }
+  button.ghost { background: #fff; color: var(--accent); }
+  button:disabled { opacity: .5; cursor: default; }
+  .grow { flex: 1 1 320px; }
+  .status { margin-top: 10px; font-size: 13px; color: var(--muted); min-height: 1.2em; }
+  .status.err { color: var(--bad); }
+  .chk { display: flex; align-items: center; gap: 6px; font-size: 14px; padding-bottom: 8px; }
+  .feat-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 4px 14px; margin-top: 6px; }
+  .feat { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+  .feat .cat { font-size: 11px; color: var(--muted); }
+  .feat .logt { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 2px; margin-left: auto; }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .metric { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; }
+  .metric .k { font-size: 12px; color: var(--muted); }
+  .metric .v { font-size: 1.45rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .metric .s { font-size: 12px; color: var(--muted); }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
+  .chart-box { position: relative; height: 320px; }
+  .chart-box.tall { height: 400px; }
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { background: #fafbfc; font-weight: 600; }
+  tr.removed td { color: var(--muted); text-decoration: line-through; }
+  tr.chosen td { background: var(--accent-soft); font-weight: 600; }
+  .sig { color: var(--good); font-weight: 600; }
+  .nsig { color: var(--bad); }
+  .warn { color: var(--bad); }
+  .eq { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; background: #fafbfc;
+        border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; overflow-x: auto; white-space: nowrap; }
+  ol.log { margin: 0; padding-left: 20px; font-size: 14px; }
+  .pred-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+  .pred-out { margin-top: 14px; font-size: 1.05rem; line-height: 1.8; }
+  .pred-out b { color: var(--accent); font-size: 1.2rem; }
+  .note { font-size: 13px; color: var(--muted); }
+  .src { font-size: 13px; margin: 8px 0 0; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 30px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Multiple Linear Regression — HW2</h1>
+    <p>兩個 Kaggle 資料集（特徵數 14–39），依 CRISP-DM 流程完成特徵選擇、模型評估與含信賴區間 / 預測區間的預測；也可以輸入任意 CSV Dataset URL。</p>
+  </header>
+  <div class="steps">
+    <span>1. Business Understanding</span><span>2. Data Understanding</span><span>3. Data Preparation</span>
+    <span>4. Modeling</span><span>5. Evaluation</span><span>6. Deployment</span>
+  </div>
+
+  <!-- 1. Business understanding + data source -->
+  <section class="card">
+    <h2>1. Business Understanding — 選擇問題 / Dataset</h2>
+    <div class="row">
+      <div class="field">
+        <label for="problemSel">Problem</label>
+        <select id="problemSel">
+          <option value="house">Problem 1：King County House Sales（預測房價）</option>
+          <option value="car">Problem 2：Car Price Prediction（預測車價）</option>
+          <option value="custom">自訂 Dataset URL…</option>
+        </select>
+      </div>
+      <div class="field grow">
+        <label for="urlInput">Dataset URL（CSV）</label>
+        <input type="text" id="urlInput" placeholder="https://raw.githubusercontent.com/.../data.csv">
+      </div>
+      <button id="loadBtn">載入</button>
+      <button id="fileBtn" class="ghost" title="或上傳本機 CSV">上傳 CSV</button>
+      <input type="file" id="fileInput" accept=".csv,text/csv" hidden>
+    </div>
+    <p id="bizText" class="note" style="margin:12px 0 0"></p>
+    <p id="srcText" class="src"></p>
+    <div id="status" class="status"></div>
+  </section>
+
+  <!-- 2. Data understanding -->
+  <section class="card" id="dataCard" hidden>
+    <h2>2. Data Understanding <small id="dataShape"></small></h2>
+    <div class="scroll"><table id="statsTable"></table></div>
+    <details style="margin-top:12px"><summary class="note">預覽前 10 筆資料</summary>
+      <div class="scroll" style="margin-top:8px"><table id="previewTable"></table></div>
+    </details>
+  </section>
+
+  <!-- 3. Data preparation + 4. modeling settings -->
+  <section class="card" id="setupCard" hidden>
+    <h2>3. Data Preparation &amp; 4. Modeling 設定</h2>
+    <div class="row">
+      <div class="field">
+        <label for="targetSel">Target (y)</label>
+        <select id="targetSel"></select>
+      </div>
+      <label class="chk"><input type="checkbox" id="logY"> 使用 log(y)</label>
+      <div class="field">
+        <label for="testSize">Test size</label>
+        <input type="number" id="testSize" value="0.2" min="0.1" max="0.5" step="0.05" style="width:90px">
+      </div>
+      <div class="field">
+        <label for="seed">Random seed</label>
+        <input type="number" id="seed" value="42" style="width:90px">
+      </div>
+      <div class="field">
+        <label for="method">Feature selection</label>
+        <select id="method">
+          <option value="backward">Backward Elimination（p-value）</option>
+          <option value="forward">Forward Stepwise（AIC）</option>
+          <option value="topk">Top-k |相關係數|</option>
+          <option value="all">All-in（使用全部勾選特徵）</option>
+        </select>
+      </div>
+      <div class="field" id="slBox">
+        <label for="sl">Significance level</label>
+        <input type="number" id="sl" value="0.05" min="0.001" max="0.5" step="0.01" style="width:90px">
+      </div>
+      <div class="field" id="kBox" hidden>
+        <label for="topk">k</label>
+        <input type="number" id="topk" value="10" min="1" step="1" style="width:80px">
+      </div>
+      <button id="trainBtn">訓練模型</button>
+    </div>
+    <div style="margin-top:14px">
+      <div class="lbl">Features (X)　<span class="note" style="text-transform:none;font-weight:400">
+        類別欄位自動 One-Hot（drop first）；勾「log」代表該數值特徵取 log(1+x)；在訓練集上完全共線或為常數的欄位會被自動移除</span></div>
+      <div class="feat-list" id="featList"></div>
+    </div>
+    <div id="prepNote" class="note" style="margin-top:10px"></div>
+  </section>
+
+  <section id="results" hidden>
+    <!-- 5. Evaluation -->
+    <section class="card">
+      <h2>5. Evaluation <small id="evalSub"></small></h2>
+      <div class="metrics" id="metrics"></div>
+    </section>
+
+    <section class="card">
+      <h2>預測圖：95% 信賴區間（CI）與預測區間（PI） <small>test set，依預測值排序</small></h2>
+      <div class="chart-box tall"><canvas id="chartBand"></canvas></div>
+      <p class="note" style="margin:10px 0 0">深色帶 = 平均值的 95% 信賴區間（模型對「同樣條件下平均價格」有多確定）；
+        淺色帶 = 單一新樣本的 95% 預測區間（同時包含模型不確定性與個別差異）。PI 覆蓋率 = 測試樣本實際值落在 PI 內的比例，理想值接近 95%。</p>
+    </section>
+
+    <section class="card">
+      <h2>Feature Selection 方法比較 <small>全部在 training set 上挑選，test set 評估</small></h2>
+      <div class="scroll"><table id="cmpTable"></table></div>
+      <p class="note" style="margin:10px 0 0">Adj R² 與 AIC 由 training set 計算（AIC 越小越好）；R²、MAE、RMSE 為 test set，單位為原始 target。</p>
+    </section>
+
+    <div class="grid2">
+      <section class="card"><h2>特徵數量 vs 誤差 <small>Forward Stepwise 加入順序</small></h2><div class="chart-box"><canvas id="chartPath"></canvas></div></section>
+      <section class="card"><h2>與 Target 的相關係數</h2><div class="chart-box"><canvas id="chartCorr"></canvas></div></section>
+    </div>
+
+    <section class="card">
+      <h2>回歸方程式</h2>
+      <div class="eq" id="equation"></div>
+      <div id="elimBox" style="margin-top:14px"></div>
+    </section>
+
+    <section class="card">
+      <h2>係數、顯著性與 VIF <small>（training set OLS）</small></h2>
+      <div class="scroll"><table id="coefTable"></table></div>
+      <p class="note" style="margin:10px 0 0">VIF &gt; 10 代表嚴重多重共線性，係數解釋需要小心。</p>
+    </section>
+
+    <div class="grid2">
+      <section class="card"><h2>Actual vs Predicted <small>test set</small></h2><div class="chart-box"><canvas id="chartPred"></canvas></div></section>
+      <section class="card"><h2>Residuals vs Fitted <small>training set</small></h2><div class="chart-box"><canvas id="chartResid"></canvas></div></section>
+    </div>
+
+    <!-- 6. Deployment -->
+    <section class="card">
+      <h2>6. Deployment：輸入特徵值進行預測</h2>
+      <div class="pred-form" id="predForm"></div>
+      <div class="pred-out" id="predOut"></div>
+    </section>
+  </section>
+
+  <footer>HW2 · Multiple Linear Regression · 所有計算在瀏覽器端完成（OLS normal equation、t-test p-value、t 分配信賴/預測區間）</footer>
+</div>
+
+<script>
+// ---------------- presets ----------------
+const PRESETS = {
+  house: {
+    local: 'data/kc_house_data.csv',
+    url: 'https://raw.githubusercontent.com/Shreyas3108/house-price-prediction/master/kc_house_data.csv',
+    kaggle: 'https://www.kaggle.com/datasets/harlfoxem/housesalesprediction',
+    title: 'Kaggle — House Sales in King County, USA',
+    target: 'price', logY: true,
+    drop: ['id', 'date', 'zipcode'],
+    logX: ['sqft_living', 'sqft_lot', 'sqft_above', 'sqft_living15', 'sqft_lot15'],
+    method: 'backward',
+    biz: '商業理解：房仲與買方希望依房屋的坪數、房間數、屋況等級 (grade)、景觀、位置 (lat/long) 與屋齡，估計 King County（含 Seattle）房屋的合理成交價，並給出價格的可能範圍（預測區間），用於議價與估價。21,613 筆、18 個特徵（不含 id 與 target）。'
+  },
+  car: {
+    local: 'data/CarPrice_Assignment.csv',
+    url: 'https://raw.githubusercontent.com/amankharwal/Website-data/master/CarPrice.csv',
+    kaggle: 'https://www.kaggle.com/datasets/hellbuoy/car-price-prediction',
+    title: 'Kaggle — Car Price Prediction (Multiple Linear Regression)',
+    target: 'price', logY: true,
+    drop: ['car_ID', 'CarName'],
+    logX: [],
+    method: 'backward',
+    biz: '商業理解：一家想進入美國市場的車廠需要知道哪些車輛規格（車重、馬力、車寬、引擎位置、油耗…）真正影響售價，以便設計車款與訂價。205 筆、24 個特徵（含 10 個類別特徵，不含 car_ID 與 target）。'
+  },
+  custom: { biz: '自訂資料集：輸入任何公開 CSV 的 URL（需允許 CORS，例如 raw.githubusercontent.com），或上傳本機 CSV。預設最後一個數值欄位為 Target，可在下方改選。' }
+};
+
+const $ = id => document.getElementById(id);
+let DATA = null;          // { columns, rows, types }
+let PRESET = null;        // preset used for the loaded data (null for custom)
+let MODEL = null;
+const charts = {};
+
+// ---------------- math helpers ----------------
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+function invert(M) {               // Gauss-Jordan with partial pivoting
+  const n = M.length, A = M.map((r, i) => [...r, ...Array.from({ length: n }, (_, j) => +(i === j))]);
+  for (let c = 0; c < n; c++) {
+    let p = c; for (let r = c + 1; r < n; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r;
+    if (Math.abs(A[p][c]) < 1e-12) return null;
+    [A[c], A[p]] = [A[p], A[c]];
+    const d = A[c][c]; for (let j = 0; j < 2 * n; j++) A[c][j] /= d;
+    for (let r = 0; r < n; r++) if (r !== c) { const f = A[r][c]; if (f) for (let j = 0; j < 2 * n; j++) A[r][j] -= f * A[c][j]; }
+  }
+  return A.map(r => r.slice(n));
+}
+
+function lgamma(x) { const g = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5];
+  let y = x, t = x + 5.5; t -= (x + 0.5) * Math.log(t); let s = 1.000000000190015; for (const c of g) s += c / ++y; return -t + Math.log(2.5066282746310005 * s / x); }
+function betacf(a, b, x) { let qab = a + b, qap = a + 1, qam = a - 1, c = 1, d = 1 - qab * x / qap; if (Math.abs(d) < 1e-30) d = 1e-30; d = 1 / d; let h = d;
+  for (let m = 1; m <= 200; m++) { const m2 = 2 * m; let aa = m * (b - m) * x / ((qam + m2) * (a + m2));
+    d = 1 + aa * d; if (Math.abs(d) < 1e-30) d = 1e-30; c = 1 + aa / c; if (Math.abs(c) < 1e-30) c = 1e-30; d = 1 / d; h *= d * c;
+    aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2)); d = 1 + aa * d; if (Math.abs(d) < 1e-30) d = 1e-30; c = 1 + aa / c; if (Math.abs(c) < 1e-30) c = 1e-30;
+    d = 1 / d; const del = d * c; h *= del; if (Math.abs(del - 1) < 3e-12) break; } return h; }
+function ibeta(x, a, b) { if (x <= 0) return 0; if (x >= 1) return 1;
+  const bt = Math.exp(lgamma(a + b) - lgamma(a) - lgamma(b) + a * Math.log(x) + b * Math.log(1 - x));
+  return x < (a + 1) / (a + b + 2) ? bt * betacf(a, b, x) / a : 1 - bt * betacf(b, a, 1 - x) / b; }
+const tPvalue = (t, df) => ibeta(df / (df + t * t), df / 2, 0.5);   // two-sided
+function tQuantile(alpha, df) {     // t such that two-sided p = alpha (bisection)
+  let lo = 0, hi = 1000;
+  for (let i = 0; i < 100; i++) { const mid = (lo + hi) / 2; if (tPvalue(mid, df) > alpha) lo = mid; else hi = mid; }
+  return (lo + hi) / 2;
+}
+
+function pearson(a, b) {
+  const n = a.length, ma = a.reduce((s, v) => s + v, 0) / n, mb = b.reduce((s, v) => s + v, 0) / n;
+  let sab = 0, saa = 0, sbb = 0; for (let i = 0; i < n; i++) { sab += (a[i] - ma) * (b[i] - mb); saa += (a[i] - ma) ** 2; sbb += (b[i] - mb) ** 2; }
+  return sab / Math.sqrt(saa * sbb);
+}
+
+const fmt = (v, d = 4) => {
+  if (v === null || v === undefined || Number.isNaN(v)) return '—';
+  const a = Math.abs(v);
+  if (a !== 0 && (a < 1e-3 || a >= 1e7)) return v.toExponential(3);
+  return v.toLocaleString('en-US', { maximumFractionDigits: a >= 1000 ? 2 : d });
+};
+const pct = v => (100 * v).toFixed(1) + '%';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ---------------- OLS on a precomputed Gram matrix ----------------
+// Training columns are standardized; G = A'A and b = A'y with A = [1, Z]. Any subset S of
+// columns is then fitted from submatrices, which keeps stepwise selection fast on 20k rows.
+function gram(Z, y) {
+  const n = Z.length, k = Z[0].length + 1;
+  const G = Array.from({ length: k }, () => new Float64Array(k)), b = new Float64Array(k);
+  let yy = 0;
+  for (let r = 0; r < n; r++) {
+    const a = [1, ...Z[r]];
+    for (let i = 0; i < k; i++) { b[i] += a[i] * y[r]; for (let j = i; j < k; j++) G[i][j] += a[i] * a[j]; }
+    yy += y[r] * y[r];
+  }
+  for (let i = 0; i < k; i++) for (let j = 0; j < i; j++) G[i][j] = G[j][i];
+  const mean = b[0] / n;
+  return { G, b, yy, n, sst: yy - n * mean * mean };
+}
+
+function fitSubset(GR, S) {         // S: column indices (0-based, without intercept)
+  const idx = [0, ...S.map(j => j + 1)], k = idx.length;
+  const inv = invert(idx.map(i => idx.map(j => GR.G[i][j])));
+  if (!inv) return null;
+  const bb = idx.map(i => GR.b[i]);
+  const beta = inv.map(row => row.reduce((s, v, j) => s + v * bb[j], 0));
+  const sse = Math.max(GR.yy - beta.reduce((s, v, i) => s + v * bb[i], 0), 1e-300);
+  const n = GR.n, df = n - k, sigma2 = sse / Math.max(df, 1);
+  const se = inv.map((r, i) => Math.sqrt(Math.max(sigma2 * r[i], 0)));
+  const t = beta.map((v, i) => v / se[i]);
+  const p = t.map(v => df > 0 && isFinite(v) ? tPvalue(v, df) : NaN);
+  const r2 = 1 - sse / GR.sst;
+  return { S, beta, se, t, p, inv, sigma2, df, r2, adjR2: 1 - (1 - r2) * (n - 1) / Math.max(df, 1),
+           aic: n * Math.log(sse / n) + 2 * k };
+}
+
+// ---------------- feature selection (training set only) ----------------
+function selectBackward(GR, S, sl) {
+  let fit = fitSubset(GR, S); const log = [];
+  while (fit && S.length > 1) {
+    const p = fit.p.slice(1), w = p.indexOf(Math.max(...p));
+    if (!(p[w] > sl)) break;
+    log.push({ j: S[w], p: p[w], adjBefore: fit.adjR2 });
+    S = S.filter((_, i) => i !== w); fit = fitSubset(GR, S);
+  }
+  return { S, log };
+}
+
+function selectForward(GR, S) {     // add the column that lowers AIC most; record the full path
+  const path = []; let cur = [], rest = [...S];
+  while (rest.length) {
+    let best = null;
+    for (const j of rest) { const f = fitSubset(GR, [...cur, j]); if (f && (!best || f.aic < best.aic)) best = { j, aic: f.aic }; }
+    if (!best) break;
+    cur = [...cur, best.j]; rest = rest.filter(j => j !== best.j); path.push(best);
+  }
+  let m = 0; path.forEach((s, i) => { if (s.aic < path[m].aic) m = i; });
+  return { S: path.slice(0, m + 1).map(s => s.j), path };
+}
+
+function selectTopK(corrTr, S, k) {
+  return { S: [...S].sort((a, b) => Math.abs(corrTr[b]) - Math.abs(corrTr[a])).slice(0, Math.max(1, Math.min(k, S.length))) };
+}
+
+// ---------------- data loading ----------------
+function setStatus(msg, err = false) { $('status').textContent = msg; $('status').className = 'status' + (err ? ' err' : ''); }
+
+async function fetchText(urls) {
+  let lastErr;
+  for (const u of urls) {
+    try { const r = await fetch(u); if (!r.ok) throw new Error(`HTTP ${r.status}`); return await r.text(); }
+    catch (e) { lastErr = e; }
+  }
+  throw lastErr;
+}
+
+function parseCSV(text) {
+  const res = Papa.parse(text.trim(), { header: true, skipEmptyLines: true });
+  const columns = res.meta.fields.filter(c => c !== '' && c != null);
+  const rows = res.data.map(r => { const o = {}; columns.forEach(c => o[c] = (r[c] ?? '').toString().trim()); return o; });
+  const types = {};
+  columns.forEach(c => {
+    const vals = rows.map(r => r[c]).filter(v => v !== '' && v.toUpperCase() !== 'NA' && v.toUpperCase() !== 'NAN');
+    types[c] = vals.length && vals.every(v => isFinite(Number(v))) ? 'num' : 'cat';
+  });
+  if (!columns.length || !rows.length) throw new Error('CSV 沒有資料');
+  rows.forEach(r => columns.forEach(c => { if (types[c] === 'num' && !isFinite(Number(r[c]))) r[c] = ''; }));
+  return { columns, rows, types };
+}
+
+async function loadDataset() {
+  const key = $('problemSel').value, preset = PRESETS[key];
+  const url = $('urlInput').value.trim();
+  if (!url) return setStatus('請輸入 Dataset URL', true);
+  setStatus('載入中…'); $('loadBtn').disabled = true;
+  try {
+    const isPreset = key !== 'custom' && url === preset.url;
+    const text = await fetchText(isPreset ? [preset.local, preset.url] : [url]);
+    useData(parseCSV(text), isPreset ? preset : null, url);
+  } catch (e) {
+    setStatus(`載入失敗：${e.message}（請確認 URL 為公開 CSV 且允許跨網域存取，或改用「上傳 CSV」）`, true);
+  } finally { $('loadBtn').disabled = false; }
+}
+
+function useData(data, preset, sourceLabel) {
+  DATA = data; PRESET = preset;
+  const numCols = data.columns.filter(c => data.types[c] === 'num');
+  if (!numCols.length) return setStatus('找不到數值欄位可作為 Target', true);
+  let target = preset?.target;
+  if (!target || !numCols.includes(target)) target = numCols.includes(data.columns.at(-1)) ? data.columns.at(-1) : numCols.at(-1);
+  setStatus(`已載入 ${data.rows.length} 筆 × ${data.columns.length} 欄　(${sourceLabel})`);
+  $('targetSel').innerHTML = numCols.map(c => `<option ${c === target ? 'selected' : ''}>${esc(c)}</option>`).join('');
+  $('logY').checked = !!preset?.logY;
+  if (preset) { $('method').value = preset.method; syncMethodInputs(); }
+  renderDataUnderstanding();
+  renderFeatureList();
+  $('dataCard').hidden = $('setupCard').hidden = false;
+  train();
+}
+
+// ---------------- data understanding ----------------
+function renderDataUnderstanding() {
+  const { columns, rows, types } = DATA;
+  $('dataShape').textContent = `${rows.length} rows × ${columns.length} columns（特徵 ${columns.length - 1} 個，含 id 類欄位）`;
+  let h = '<tr><th>Column</th><th>Type</th><th>Missing</th><th>Mean</th><th>Std</th><th>Min</th><th>Median</th><th>Max</th><th>Skew</th><th>Unique</th></tr>';
+  columns.forEach(c => {
+    const raw = rows.map(r => r[c]), miss = raw.filter(v => v === '').length, uniq = new Set(raw.filter(v => v !== '')).size;
+    if (types[c] === 'num') {
+      const v = raw.filter(x => x !== '').map(Number).sort((a, b) => a - b), n = v.length, m = v.reduce((a, b) => a + b, 0) / n;
+      const sd = Math.sqrt(v.reduce((s, x) => s + (x - m) ** 2, 0) / Math.max(n - 1, 1));
+      const sk = sd ? v.reduce((s, x) => s + ((x - m) / sd) ** 3, 0) / n : 0;
+      h += `<tr><td>${esc(c)}</td><td>numeric</td><td>${miss}</td><td>${fmt(m)}</td><td>${fmt(sd)}</td><td>${fmt(v[0])}</td>` +
+           `<td>${fmt(v[Math.floor(n / 2)])}</td><td>${fmt(v[n - 1])}</td><td class="${Math.abs(sk) > 2 ? 'warn' : ''}">${fmt(sk, 2)}</td><td>${uniq}</td></tr>`;
+    } else {
+      h += `<tr><td>${esc(c)}</td><td>categorical</td><td>${miss}</td><td colspan="6" style="text-align:left">${[...new Set(raw)].slice(0, 6).map(esc).join(', ')}${uniq > 6 ? ', …' : ''}</td><td>${uniq}</td></tr>`;
+    }
+  });
+  $('statsTable').innerHTML = h;
+  $('previewTable').innerHTML = '<tr>' + columns.map(c => `<th>${esc(c)}</th>`).join('') + '</tr>' +
+    rows.slice(0, 10).map(r => '<tr>' + columns.map(c => `<td>${esc(r[c])}</td>`).join('') + '</tr>').join('');
+}
+
+function renderFeatureList() {
+  const target = $('targetSel').value, n = DATA.rows.length;
+  $('featList').innerHTML = DATA.columns.filter(c => c !== target).map(c => {
+    const uniq = new Set(DATA.rows.map(r => r[c])).size;
+    const isCat = DATA.types[c] === 'cat';
+    let on = !isCat || uniq <= 30;                    // skip id-like text columns
+    if (!isCat && uniq === n && /id$/i.test(c)) on = false;   // numeric row ids
+    if (PRESET) on = !PRESET.drop.includes(c);
+    const lg = !!PRESET?.logX.includes(c);
+    return `<div class="feat"><label class="feat"><input type="checkbox" class="use" value="${esc(c)}" ${on ? 'checked' : ''}>${esc(c)}` +
+      (isCat ? ` <span class="cat">(類別, ${uniq})</span>` : '') + '</label>' +
+      (isCat ? '' : `<label class="logt"><input type="checkbox" class="lg" data-f="${esc(c)}" ${lg ? 'checked' : ''}>log</label>`) + '</div>';
+  }).join('');
+}
+
+// ---------------- 3. data preparation ----------------
+function buildDesign(features, logSet, target, logY) {
+  const tx = (f, v) => logSet.has(f) ? Math.log1p(v) : v;
+  const rows = DATA.rows.filter(r => r[target] !== '' && (!logY || Number(r[target]) > 0) &&
+    features.every(f => r[f] !== '' && (!logSet.has(f) || Number(r[f]) > -1)));
+  const cols = [], levels = {};
+  features.forEach(f => {
+    if (DATA.types[f] === 'num') cols.push({ name: logSet.has(f) ? `log(${f})` : f, src: f, kind: 'num' });
+    else {
+      const lv = [...new Set(rows.map(r => r[f]))].sort();
+      levels[f] = lv;
+      lv.slice(1).forEach(l => cols.push({ name: `${f}_${l}`, src: f, kind: 'dummy', level: l }));
+    }
+  });
+  const encode = r => cols.map(c => c.kind === 'num' ? tx(c.src, Number(r[c.src])) : +(r[c.src] === c.level));
+  const X = rows.map(encode);
+  const yRaw = rows.map(r => Number(r[target]));
+  return { X, yRaw, cols, levels, encode, dropped: DATA.rows.length - rows.length };
+}
+
+// ---------------- 4. modeling ----------------
+function train() {
+  if (!DATA) return;
+  const target = $('targetSel').value, logY = $('logY').checked;
+  const features = [...$('featList').querySelectorAll('input.use:checked')].map(i => i.value);
+  const logSet = new Set([...$('featList').querySelectorAll('input.lg:checked')].map(i => i.dataset.f));
+  if (!features.length) return setStatus('請至少勾選一個特徵', true);
+
+  const D = buildDesign(features, logSet, target, logY);
+  const y = D.yRaw.map(v => logY ? Math.log(v) : v);
+  const back = v => logY ? Math.exp(v) : v;
+
+  // split
+  const testSize = Math.min(Math.max(+$('testSize').value || 0.2, 0.05), 0.6);
+  const rand = mulberry32(+$('seed').value || 0);
+  const idx = [...y.keys()]; for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+  const nTest = Math.max(1, Math.round(y.length * testSize));
+  const teI = idx.slice(0, nTest), trI = idx.slice(nTest);
+  if (trI.length < 5) return setStatus('資料筆數太少', true);
+
+  // standardize with training statistics; drop constant columns
+  const K = D.cols.length;
+  const mu = Array(K).fill(0), sd = Array(K).fill(0);
+  trI.forEach(i => D.X[i].forEach((v, j) => mu[j] += v / trI.length));
+  trI.forEach(i => D.X[i].forEach((v, j) => sd[j] += (v - mu[j]) ** 2 / Math.max(trI.length - 1, 1)));
+  for (let j = 0; j < K; j++) sd[j] = Math.sqrt(sd[j]);
+  const z = row => row.map((v, j) => sd[j] > 0 ? (v - mu[j]) / sd[j] : 0);
+  const Ztr = trI.map(i => z(D.X[i])), yTr = trI.map(i => y[i]);
+  const GR = gram(Ztr, yTr);
+
+  // remove columns that are constant or perfectly collinear on the training set
+  let usable = [], removedCols = [];
+  for (let j = 0; j < K; j++) {
+    if (!(sd[j] > 1e-12)) { removedCols.push({ j, why: '訓練集中為常數' }); continue; }
+    const f = usable.length ? fitSubset({ ...GR, b: GR.G.map(r => r[j + 1]), yy: GR.G[j + 1][j + 1], sst: GR.n - 1 }, usable) : null;
+    if (f && f.r2 > 1 - 1e-9) removedCols.push({ j, why: '與其他特徵完全共線' });
+    else usable.push(j);
+  }
+  if (trI.length <= usable.length + 1) return setStatus('訓練樣本數太少，無法估計所有係數，請減少特徵', true);
+  $('prepNote').innerHTML = removedCols.length
+    ? '自動移除：' + removedCols.map(r => `<b>${esc(D.cols[r.j].name)}</b>（${r.why}）`).join('、')
+    : '沒有常數或完全共線的欄位。';
+
+  // feature selection — all methods, so they can be compared
+  const corrTr = D.cols.map((_, j) => pearson(trI.map(i => D.X[i][j]), yTr));
+  const sl = +$('sl').value || 0.05, k = +$('topk').value || 10;
+  const fwd = selectForward(GR, usable);
+  const sel = {
+    all: { label: 'All-in', S: usable },
+    backward: { label: `Backward Elimination (p ≤ ${sl})`, ...selectBackward(GR, usable, sl) },
+    forward: { label: 'Forward Stepwise (AIC)', S: fwd.S },
+    topk: { label: `Top-${Math.min(k, usable.length)} |corr|`, ...selectTopK(corrTr, usable, k) },
+  };
+
+  const evaluate = S => {
+    const fit = fitSubset(GR, S); if (!fit) return null;
+    const tq = tQuantile(0.05, fit.df);
+    const predictZ = zr => {
+      const x = [1, ...S.map(j => zr[j])];
+      const yhat = x.reduce((s, v, i) => s + v * fit.beta[i], 0);
+      let h = 0; for (let i = 0; i < x.length; i++) for (let j = 0; j < x.length; j++) h += x[i] * fit.inv[i][j] * x[j];
+      const ci = tq * Math.sqrt(fit.sigma2 * h), pi = tq * Math.sqrt(fit.sigma2 * (1 + h));
+      return { yhat: back(yhat), ci: [back(yhat - ci), back(yhat + ci)], pi: [back(yhat - pi), back(yhat + pi)] };
+    };
+    const P = teI.map(i => predictZ(z(D.X[i]))), yt = teI.map(i => D.yRaw[i]);
+    const n = yt.length, m = yt.reduce((a, b) => a + b, 0) / n;
+    let sse = 0, sst = 0, sae = 0, cover = 0;
+    P.forEach((p, i) => { const e = yt[i] - p.yhat; sse += e * e; sst += (yt[i] - m) ** 2; sae += Math.abs(e); cover += +(yt[i] >= p.pi[0] && yt[i] <= p.pi[1]); });
+    return { fit, predictZ, P, yt, r2: 1 - sse / sst, mae: sae / n, rmse: Math.sqrt(sse / n), coverage: cover / n };
+  };
+  for (const key in sel) sel[key].ev = evaluate(sel[key].S);
+
+  const method = $('method').value, chosen = sel[method];
+  if (!chosen.ev) return setStatus('XᵀX 為奇異矩陣，請調整特徵', true);
+
+  // forward path: test RMSE after each added feature
+  const path = fwd.path.map((s, i) => { const e = evaluate(fwd.path.slice(0, i + 1).map(p => p.j)); return { name: D.cols[s.j].name, aic: s.aic, rmse: e?.rmse }; });
+
+  // VIF from the correlation matrix of the chosen standardized columns
+  const S = chosen.S, R = invert(S.map(i => S.map(j => GR.G[i + 1][j + 1] / (GR.n - 1))));
+  const vif = R ? R.map((r, i) => r[i]) : S.map(() => NaN);
+
+  // coefficients back on the (possibly log-transformed) feature scale
+  const fit = chosen.ev.fit, a = [1, ...S.map(j => -mu[j] / sd[j])];
+  const b0 = fit.beta.reduce((s, v, i) => s + v * a[i], 0);
+  let v0 = 0; for (let i = 0; i < a.length; i++) for (let j = 0; j < a.length; j++) v0 += a[i] * fit.inv[i][j] * a[j];
+  const coef = [{ name: '(Intercept)', beta: b0, se: Math.sqrt(fit.sigma2 * v0), t: b0 / Math.sqrt(fit.sigma2 * v0) }]
+    .concat(S.map((j, i) => ({ name: D.cols[j].name, beta: fit.beta[i + 1] / sd[j], se: fit.se[i + 1] / sd[j], t: fit.t[i + 1], vif: vif[i] })));
+  coef.forEach(c => c.p = isFinite(c.t) ? tPvalue(c.t, fit.df) : NaN);
+
+  MODEL = { target, logY, D, sel, method, chosen, path, coef, removedCols, z, corrTr, trI, teI, yTr, GR, usable, features, logSet };
+  setStatus(`已載入 ${DATA.rows.length} 筆；train ${trI.length} / test ${teI.length}` + (D.dropped ? `；移除含缺值（或無法取 log）的 ${D.dropped} 筆` : ''));
+  renderResults();
+}
+
+// ---------------- 5. evaluation ----------------
+function renderResults() {
+  const M = MODEL, ev = M.chosen.ev, f = ev.fit;
+  $('results').hidden = false;
+  $('evalSub').textContent = `${M.chosen.label}：使用 ${M.chosen.S.length} / ${M.usable.length} 個欄位，target = ${M.logY ? 'log(' + M.target + ')' : M.target}`;
+  const card = (k, v, s) => `<div class="metric"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
+  $('metrics').innerHTML =
+    card('Test R²', fmt(ev.r2), '原始單位') + card('Train Adj R²', fmt(f.adjR2), M.logY ? 'log 尺度' : '') +
+    card('Test MAE', fmt(ev.mae), M.target) + card('Test RMSE', fmt(ev.rmse), M.target) +
+    card('95% PI 覆蓋率', pct(ev.coverage), `test 共 ${ev.yt.length} 筆`);
+
+  // comparison table
+  let h = '<tr><th>Method</th><th># Features</th><th>Train Adj R²</th><th>AIC</th><th>Test R²</th><th>Test MAE</th><th>Test RMSE</th><th>PI 覆蓋率</th></tr>';
+  for (const key in M.sel) {
+    const s = M.sel[key], e = s.ev; if (!e) continue;
+    h += `<tr class="${key === M.method ? 'chosen' : ''}"><td>${esc(s.label)}</td><td>${s.S.length}</td><td>${fmt(e.fit.adjR2)}</td><td>${fmt(e.fit.aic, 1)}</td>` +
+         `<td>${fmt(e.r2)}</td><td>${fmt(e.mae)}</td><td>${fmt(e.rmse)}</td><td>${pct(e.coverage)}</td></tr>`;
+  }
+  $('cmpTable').innerHTML = h;
+
+  // equation
+  let eq = `${M.logY ? 'log(' + esc(M.target) + ')' : esc(M.target)} = ${fmt(M.coef[0].beta)}`;
+  M.coef.slice(1).forEach(c => eq += ` ${c.beta < 0 ? '−' : '+'} ${fmt(Math.abs(c.beta))}·${esc(c.name)}`);
+  $('equation').innerHTML = eq;
+
+  // elimination log
+  if (M.method === 'backward') {
+    const log = M.chosen.log;
+    $('elimBox').innerHTML = log.length
+      ? `<div class="note" style="margin-bottom:6px">Backward Elimination 過程（SL = ${$('sl').value}）：</div><ol class="log">` +
+        log.map(l => `<li>移除 <b>${esc(M.D.cols[l.j].name)}</b>（p = ${fmt(l.p)}，移除前 Adj R² = ${fmt(l.adjBefore)}）</li>`).join('') + '</ol>'
+      : `<div class="note">所有特徵 p-value 皆 ≤ ${$('sl').value}，沒有移除任何特徵。</div>`;
+  } else if (M.method === 'forward') {
+    $('elimBox').innerHTML = `<div class="note">Forward Stepwise 依序加入：${M.path.map((p, i) => `${i + 1}. ${esc(p.name)}`).join('、')}；AIC 在第 ${M.chosen.S.length} 步最小。</div>`;
+  } else $('elimBox').innerHTML = '';
+
+  // coefficient table
+  const sl = +$('sl').value || 0.05, inModel = new Set(M.chosen.S);
+  h = '<tr><th>Variable</th><th>Coefficient</th><th>Std. Error</th><th>t</th><th>p-value</th><th></th><th>VIF</th></tr>';
+  M.coef.forEach(c => {
+    h += `<tr><td>${esc(c.name)}</td><td>${fmt(c.beta)}</td><td>${fmt(c.se)}</td><td>${fmt(c.t, 3)}</td>` +
+         `<td class="${c.p <= sl ? 'sig' : 'nsig'}">${fmt(c.p)}</td><td>${c.p < .001 ? '***' : c.p < .01 ? '**' : c.p < .05 ? '*' : ''}</td>` +
+         `<td class="${c.vif > 10 ? 'warn' : ''}">${c.vif === undefined ? '' : fmt(c.vif, 2)}</td></tr>`;
+  });
+  M.usable.forEach(j => { if (!inModel.has(j)) h += `<tr class="removed"><td>${esc(M.D.cols[j].name)}</td><td colspan="6">未選入</td></tr>`; });
+  $('coefTable').innerHTML = h;
+
+  renderCharts();
+  renderPredictForm();
+}
+
+function makeChart(id, cfg) { if (charts[id]) charts[id].destroy(); charts[id] = new Chart($(id), cfg); }
+
+function renderCharts() {
+  const M = MODEL, ev = M.chosen.ev, accent = '#2f6fdf', red = '#c2453b';
+  const axis = (t, extra = {}) => ({ title: { display: true, text: t }, grid: { color: '#eef0f4' }, ...extra });
+  const big = ev.yt.length > 400;
+  const base = { maintainAspectRatio: false, animation: false };
+
+  // prediction plot with CI / PI bands
+  const order = ev.P.map((_, i) => i).sort((a, b) => ev.P[a].yhat - ev.P[b].yhat);
+  const pts = sel => order.map((i, r) => ({ x: r, y: sel(i) }));
+  makeChart('chartBand', {
+    type: 'line',
+    data: { datasets: [
+      { label: '95% PI', data: pts(i => ev.P[i].pi[0]), borderWidth: 0, pointRadius: 0, fill: false },
+      { label: '95% 預測區間 (PI)', data: pts(i => ev.P[i].pi[1]), borderWidth: 0, pointRadius: 0, backgroundColor: accent + '30', fill: '-1' },
+      { label: '95% CI', data: pts(i => ev.P[i].ci[0]), borderWidth: 0, pointRadius: 0, fill: false },
+      { label: '95% 信賴區間 (CI)', data: pts(i => ev.P[i].ci[1]), borderWidth: 0, pointRadius: 0, backgroundColor: accent + '99', fill: '-1' },
+      { label: '預測值', data: pts(i => ev.P[i].yhat), borderColor: '#1d2433', borderWidth: 1.5, pointRadius: 0 },
+      { label: '實際值', type: 'scatter', data: pts(i => ev.yt[i]), backgroundColor: red + (big ? '55' : 'b0'), pointRadius: big ? 1.5 : 3.5 },
+    ] },
+    options: { ...base, interaction: { mode: 'nearest', intersect: false },
+      plugins: { legend: { labels: { filter: it => !['95% PI', '95% CI'].includes(it.text) } },
+                 tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmt(c.parsed.y)}` } } },
+      scales: { x: axis('test 樣本（依預測值排序）', { type: 'linear', ticks: { precision: 0 } }),
+                y: axis(M.target, M.logY ? { type: 'logarithmic' } : {}) } }
+  });
+
+  // actual vs predicted
+  const yh = ev.P.map(p => p.yhat), all = [...ev.yt, ...yh], lo = Math.min(...all), hi = Math.max(...all);
+  makeChart('chartPred', {
+    type: 'scatter',
+    data: { datasets: [
+      { label: 'test samples', data: ev.yt.map((v, i) => ({ x: v, y: yh[i] })), backgroundColor: accent + (big ? '55' : 'b0'), pointRadius: big ? 2 : 4 },
+      { label: 'y = x', type: 'line', data: [{ x: lo, y: lo }, { x: hi, y: hi }], borderColor: red, borderDash: [5, 4], pointRadius: 0, borderWidth: 1.5 }
+    ] },
+    options: { ...base, scales: { x: axis(`Actual ${M.target}`), y: axis(`Predicted ${M.target}`) } }
+  });
+
+  // residuals vs fitted on the training set (model scale)
+  const f = ev.fit, S = M.chosen.S;
+  const res = M.trI.map((i, r) => { const zr = M.z(M.D.X[i]); const fv = [1, ...S.map(j => zr[j])].reduce((s, v, k) => s + v * f.beta[k], 0); return { x: fv, y: M.yTr[r] - fv }; });
+  const shown = res.length > 3000 ? res.filter((_, i) => i % Math.ceil(res.length / 3000) === 0) : res;
+  const fx = shown.map(p => p.x);
+  makeChart('chartResid', {
+    type: 'scatter',
+    data: { datasets: [
+      { label: 'residual', data: shown, backgroundColor: '#1a8f5a' + (shown.length > 400 ? '50' : 'b0'), pointRadius: shown.length > 400 ? 1.5 : 3.5 },
+      { label: '0', type: 'line', data: [{ x: Math.min(...fx), y: 0 }, { x: Math.max(...fx), y: 0 }], borderColor: '#64708a', pointRadius: 0, borderWidth: 1 }
+    ] },
+    options: { ...base, plugins: { legend: { display: false } }, scales: { x: axis('Fitted' + (M.logY ? '（log 尺度）' : '')), y: axis('Residual') } }
+  });
+
+  // forward path
+  makeChart('chartPath', {
+    type: 'line',
+    data: { labels: M.path.map((p, i) => i + 1), datasets: [
+      { label: 'Test RMSE', data: M.path.map(p => p.rmse), borderColor: accent, backgroundColor: accent, yAxisID: 'y' },
+      { label: 'Train AIC', data: M.path.map(p => p.aic), borderColor: '#d08a1e', backgroundColor: '#d08a1e', borderDash: [4, 3], yAxisID: 'y1' },
+    ] },
+    options: { ...base, plugins: { tooltip: { callbacks: { title: it => `${it[0].label} 個特徵（+ ${M.path[it[0].dataIndex].name}）` } } },
+      scales: { x: axis('特徵數量'), y: axis('Test RMSE'), y1: { position: 'right', title: { display: true, text: 'AIC' }, grid: { display: false } } } }
+  });
+
+  // correlation with the target (training set)
+  const corr = M.usable.map(j => ({ name: M.D.cols[j].name, r: M.corrTr[j] })).sort((a, b) => Math.abs(b.r) - Math.abs(a.r)).slice(0, 25);
+  makeChart('chartCorr', {
+    type: 'bar',
+    data: { labels: corr.map(c => c.name), datasets: [{ data: corr.map(c => c.r), backgroundColor: corr.map(c => c.r >= 0 ? accent : red), borderRadius: 3 }] },
+    options: { ...base, indexAxis: 'y', plugins: { legend: { display: false } },
+      scales: { x: { min: -1, max: 1, grid: { color: '#eef0f4' } }, y: { grid: { display: false }, ticks: { autoSkip: false, font: { size: 10 } } } } }
+  });
+}
+
+// ---------------- 6. deployment ----------------
+function renderPredictForm() {
+  const M = MODEL;
+  const used = [...new Set(M.chosen.S.map(j => M.D.cols[j].src))];
+  $('predForm').innerHTML = used.map(f => {
+    if (DATA.types[f] === 'cat')
+      return `<div class="field"><label>${esc(f)}</label><select data-f="${esc(f)}">${M.D.levels[f].map(l => `<option>${esc(l)}</option>`).join('')}</select></div>`;
+    const v = DATA.rows.map(r => r[f]).filter(x => x !== '').map(Number).sort((a, b) => a - b);
+    return `<div class="field"><label>${esc(f)}</label><input type="number" step="any" data-f="${esc(f)}" value="${v[Math.floor(v.length / 2)]}"></div>`;
+  }).join('') || '<div class="note">模型沒有任何特徵。</div>';
+  $('predForm').querySelectorAll('[data-f]').forEach(el => el.addEventListener('input', doPredict));
+  doPredict();
+}
+
+function doPredict() {
+  const M = MODEL, row = {};
+  DATA.columns.forEach(c => row[c] = '');
+  $('predForm').querySelectorAll('[data-f]').forEach(el => row[el.dataset.f] = el.value);
+  // features outside the model are irrelevant; fill numeric ones with 0 so encode() works
+  M.D.cols.forEach(c => { if (row[c.src] === '') row[c.src] = c.kind === 'num' ? '0' : ''; });
+  const bad = M.chosen.S.some(j => { const c = M.D.cols[j]; return c.kind === 'num' && (!isFinite(Number(row[c.src])) || (M.logSet.has(c.src) && Number(row[c.src]) <= -1)); });
+  if (bad) { $('predOut').innerHTML = '<span class="warn">請輸入有效數值</span>'; return; }
+  const p = M.chosen.ev.predictZ(M.z(M.D.encode(row)));
+  $('predOut').innerHTML = `預測 ${esc(M.target)} = <b>${fmt(p.yhat)}</b><br>` +
+    `95% 信賴區間（平均值）：${fmt(p.ci[0])} ～ ${fmt(p.ci[1])}<br>` +
+    `95% 預測區間（單一新樣本）：${fmt(p.pi[0])} ～ ${fmt(p.pi[1])}　<span class="note">（預設值為各特徵中位數）</span>`;
+}
+
+// ---------------- events ----------------
+function syncMethodInputs() {
+  $('slBox').hidden = $('method').value !== 'backward';
+  $('kBox').hidden = $('method').value !== 'topk';
+}
+
+function onProblemChange() {
+  const key = $('problemSel').value, p = PRESETS[key];
+  $('bizText').textContent = p.biz;
+  $('srcText').innerHTML = p.kaggle ? `資料來源：<a href="${p.kaggle}" target="_blank" rel="noopener">${esc(p.title)}</a>（網頁從 GitHub 上的 CSV 副本載入）` : '';
+  if (key === 'custom') { $('urlInput').value = ''; $('urlInput').focus(); setStatus('請輸入 CSV URL 後按「載入」'); }
+  else { $('urlInput').value = p.url; loadDataset(); }
+}
+
+function toCustom() {
+  $('problemSel').value = 'custom'; $('bizText').textContent = PRESETS.custom.biz; $('srcText').innerHTML = '';
+}
+
+$('problemSel').addEventListener('change', onProblemChange);
+$('loadBtn').addEventListener('click', loadDataset);
+$('urlInput').addEventListener('keydown', e => { if (e.key === 'Enter') loadDataset(); });
+$('urlInput').addEventListener('input', () => {
+  // editing a preset's URL switches to custom mode; custom mode never jumps back to a preset
+  const key = $('problemSel').value;
+  if (key !== 'custom' && $('urlInput').value.trim() !== PRESETS[key].url) toCustom();
+});
+$('fileBtn').addEventListener('click', () => $('fileInput').click());
+$('fileInput').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { toCustom(); $('urlInput').value = ''; useData(parseCSV(await f.text()), null, f.name); }
+  catch (err) { setStatus('讀取失敗：' + err.message, true); }
+  e.target.value = '';
+});
+$('targetSel').addEventListener('change', () => { renderFeatureList(); train(); });
+$('trainBtn').addEventListener('click', train);
+$('featList').addEventListener('change', train);
+['logY', 'method', 'sl', 'topk', 'testSize', 'seed'].forEach(id => $(id).addEventListener('change', train));
+$('method').addEventListener('change', syncMethodInputs);
+
+onProblemChange();
+</script>
+</body>
+</html>
